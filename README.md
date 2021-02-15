@@ -55,12 +55,12 @@ Here is the original use-case for formgrep:
           (formgrep:match-form match)))
 
 (defun test-defcstruct-count ()
-  (formgrep:do-matching-forms (match :operator-regex "defcstruct")
+  (formgrep:do-form-matches (match :operator-regex "defcstruct")
     (when (tree-some (lambda (x) (eq x :count)) (formgrep:match-form match))
       (print-match match))))
 
 (defun test-defcstruct-array ()
-  (formgrep:do-matching-forms (match :operator-regex "defcstruct")
+  (formgrep:do-form-matches (match :operator-regex "defcstruct")
     (when (tree-some (lambda (x) (eq x :array)) (formgrep:match-form match))
       (print-match match))))
 ```

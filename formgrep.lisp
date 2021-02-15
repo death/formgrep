@@ -16,8 +16,8 @@
    #:match-filename
    #:match-line
    #:match-form
-   #:do-matching-forms
-   #:map-matching-forms
+   #:do-form-matches
+   #:map-form-matches
    #:symref
    #:symref-name
    #:symref-qualifier
@@ -120,14 +120,14 @@
   line
   form)
 
-(defun map-matching-forms (function &key (root-directory *default-pathname-defaults*)
-                                         (operator-regex "def")
-                                         (file-type "lisp")
-                                         (include-file-p (file-of-type file-type))
-                                         (encoding :latin-1)
-                                         (package *package*)
-                                         (test (constantly t))
-                                         (eclector-client (make-instance 'eclector-client)))
+(defun map-form-matches (function &key (root-directory *default-pathname-defaults*)
+                                       (operator-regex "def")
+                                       (file-type "lisp")
+                                       (include-file-p (file-of-type file-type))
+                                       (encoding :latin-1)
+                                       (package *package*)
+                                       (test (constantly t))
+                                       (eclector-client (make-instance 'eclector-client)))
   (let* ((eclector.reader:*client* eclector-client)
          (operator-regex (preprocess-operator-regex operator-regex))
          (scanner (ppcre:create-scanner (format nil "^\\b*\\(([^: ]*:)?~A"
@@ -147,12 +147,12 @@
                 (when (funcall test match)
                   (funcall function match))))))))))
 
-(defmacro do-matching-forms ((match-var &rest args) &body forms)
+(defmacro do-form-matches ((match-var &rest args) &body forms)
   `(block nil
-     (map-matching-forms (lambda (,match-var) ,@forms) ,@args)))
+     (map-form-matches (lambda (,match-var) ,@forms) ,@args)))
 
 ;; Default values for keyword arguments should always match
-;; MAP-MATCHING-FORMS.
+;; MAP-FORM-MATCHES.
 (defun formgrep (operator-regex &rest args
                                 &key (root-directory *default-pathname-defaults*)
                                      (file-type "lisp")
@@ -163,7 +163,7 @@
                                      (eclector-client (make-instance 'eclector-client)))
   (declare (ignore root-directory include-file-p encoding package test eclector-client))
   (let ((matches '()))
-    (apply #'map-matching-forms
+    (apply #'map-form-matches
            (lambda (match)
              (push match matches))
            :operator-regex operator-regex
