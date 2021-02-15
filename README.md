@@ -2,7 +2,7 @@
 
 Try to find top-level Lisp forms matching an operator regex.
 
-# Example
+# Examples
 
 ```lisp
 CL-USER> (setf *default-pathname-defaults* #p"/home/death/quicklisp/local-projects/formgrep/")
@@ -37,7 +37,8 @@ formgrep.lisp:150 - defun formgrep
 NIL
 ```
 
-# Another example
+See [examples](https://github.com/death/formgrep/blob/master/examples)
+directory for some small programs.
 
 Here is the original use-case for formgrep:
 
