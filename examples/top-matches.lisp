@@ -52,9 +52,9 @@ to a metric.
 
 Returns the list of the scored matches in descending order.
 
-METRIC should a function that takes a form (which may contain cycles)
-and returns a score.  The default metric counts the number of atoms in
-a form, which is a rather crude heuristic for complexity."
+METRIC should be a function that takes a form (which may contain
+cycles) and returns a score.  The default metric counts the number of
+atoms in a form, which is a rather crude heuristic for complexity."
   (let ((heap (pileup:make-heap #'< :key #'smatch-score))
         (i 0))
     (handler-bind (#+sbcl (sb-ext:package-lock-violation #'continue-scanning))
