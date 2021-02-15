@@ -25,21 +25,26 @@
 
 (in-package #:formgrep)
 
-(defun map-files (function type)
+(defun file-of-type (type)
+  (if (eq type :wild)
+      (constantly t)
+      (lambda (filename)
+        (equal (pathname-type filename) type))))
+
+(defun map-files (function predicate)
   (fad:walk-directory
    *default-pathname-defaults*
    (lambda (filename)
      (when (and (not (fad:directory-pathname-p filename))
-                (or (eq type :wild)
-                    (equal (pathname-type filename) type)))
+                (funcall predicate filename))
        (funcall function filename)))
    :directories :breadth-first
    :test (lambda (x)
            (not (equal ".git" (alexandria:last-elt (pathname-directory x)))))))
 
-(defmacro do-files ((var type) &body forms)
+(defmacro do-files ((var predicate) &body forms)
   `(block nil
-     (map-files (lambda (,var) ,@forms) ,type)))
+     (map-files (lambda (,var) ,@forms) ,predicate)))
 
 (defclass eclector-client ()
   ())
@@ -118,6 +123,7 @@
 (defun map-matching-forms (function &key (root-directory *default-pathname-defaults*)
                                          (operator-regex "def")
                                          (file-type "lisp")
+                                         (include-file-p (file-of-type file-type))
                                          (encoding :latin-1)
                                          (package *package*)
                                          (test (constantly t))
@@ -131,7 +137,7 @@
          (*default-pathname-defaults* (pathname root-directory))
          (*package* package))
     (handler-bind ((error #'eclector.base:recover))
-      (do-files (filename file-type)
+      (do-files (filename include-file-p)
         (with-file-contents (contents filename :encoding encoding)
           (ppcre:do-matches (match-start match-end scanner contents)
             (with-simple-restart (continue "Continue mapping matching forms")
@@ -150,11 +156,12 @@
 (defun formgrep (operator-regex &rest args
                                 &key (root-directory *default-pathname-defaults*)
                                      (file-type "lisp")
+                                     (include-file-p (file-of-type file-type))
                                      (encoding :latin-1)
                                      (package *package*)
                                      (test (constantly t))
                                      (eclector-client (make-instance 'eclector-client)))
-  (declare (ignore root-directory file-type encoding package test eclector-client))
+  (declare (ignore root-directory include-file-p encoding package test eclector-client))
   (let ((matches '()))
     (apply #'map-matching-forms
            (lambda (match)
