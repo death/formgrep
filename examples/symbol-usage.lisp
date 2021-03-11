@@ -41,18 +41,20 @@
           (progn ,@forms)
        (delete-package *package*))))
 
+(defvar *report* nil)
+
 (defun create-symbol-usage-report (&key (root-directory *default-pathname-defaults*)
                                         (progress-stream *standard-output*))
-  (let ((report (make-symbol-usage-report :root-directory root-directory))
+  (let ((*report* (make-symbol-usage-report :root-directory root-directory))
         (i 0))
     (with-unqualified-symbols-package
       (handler-bind (#+sbcl (sb-ext:package-lock-violation #'formgrep:skip-form))
         (formgrep:do-form-matches (match :operator-regex "" :root-directory root-directory)
-          (note-match report match)
+          (note-match match)
           (when (zerop (mod (incf i) 1000))
             (write-char #\. progress-stream)
             (force-output progress-stream)))))
-    report))
+    *report*))
 
 (defvar *agenda* '())
 
@@ -60,19 +62,16 @@
 
 (defvar *match* nil)
 
-(defvar *report* nil)
-
 (defstruct agenda-item
   form
   depth)
 
 (defvar *agenda-item* nil)
 
-(defun note-match (report match)
+(defun note-match (match)
   (let ((*agenda* (list (make-agenda-item :form (formgrep:match-form match)
                                           :depth 0)))
-        (*match* match)
-        (*report* report))
+        (*match* match))
     (clrhash *occurs*)
     (loop while *agenda*
           do (let* ((*agenda-item* (pop *agenda*))
