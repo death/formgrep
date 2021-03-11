@@ -15,20 +15,6 @@
 
 (in-package #:formgrep/examples/top-matches)
 
-(defun find-restarts (identifier &optional condition)
-  (remove identifier
-          (compute-restarts condition)
-          :test-not #'eq
-          :key #'restart-name))
-
-(defun last-elt (list)
-  (car (last list)))
-
-(defun continue-scanning (condition)
-  (let ((continue-restarts (find-restarts 'continue condition)))
-    (when continue-restarts
-      (invoke-restart (last-elt continue-restarts)))))
-
 (defun count-atoms (form)
   (let ((occurs (make-hash-table)))
     (labels ((rec (x)
@@ -57,7 +43,7 @@ cycles) and returns a score.  The default metric counts the number of
 atoms in a form, which is a rather crude heuristic for complexity."
   (let ((heap (pileup:make-heap #'< :key #'smatch-score))
         (i 0))
-    (handler-bind (#+sbcl (sb-ext:package-lock-violation #'continue-scanning))
+    (handler-bind (#+sbcl (sb-ext:package-lock-violation #'formgrep:skip-form))
       (formgrep:do-form-matches (match :operator-regex "" :root-directory root-directory)
         (let ((score (funcall metric (formgrep:match-form match))))
           (pileup:heap-insert (make-smatch :match match :score score) heap)

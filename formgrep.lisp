@@ -21,9 +21,21 @@
    #:symref
    #:symref-name
    #:symref-qualifier
-   #:eclector-client))
+   #:eclector-client
+   #:skip-form
+   #:skip-file))
 
 (in-package #:formgrep)
+
+(defun skip-file (condition)
+  (let ((restart (find-restart 'skip-file condition)))
+    (when restart
+      (invoke-restart restart))))
+
+(defun skip-form (condition)
+  (let ((restart (find-restart 'skip-form condition)))
+    (when restart
+      (invoke-restart restart))))
 
 (defun file-of-type (type)
   (if (eq type :wild)
@@ -37,7 +49,8 @@
    (lambda (filename)
      (when (and (not (fad:directory-pathname-p filename))
                 (funcall predicate filename))
-       (funcall function filename)))
+       (with-simple-restart (skip-file "Skip processing this file.")
+         (funcall function filename))))
    :directories :breadth-first
    :test (lambda (x)
            (not (equal ".git" (alexandria:last-elt (pathname-directory x)))))))
@@ -140,7 +153,7 @@
       (do-files (filename include-file-p)
         (with-file-contents (contents filename :encoding encoding)
           (ppcre:do-matches (match-start match-end scanner contents)
-            (with-simple-restart (continue "Continue mapping matching forms")
+            (with-simple-restart (skip-form "Skip processing this form.")
               (let* ((form (read-form contents match-start))
                      (line (1+ (count #\Newline contents :end match-start)))
                      (match (make-match :filename filename :line line :form form)))
