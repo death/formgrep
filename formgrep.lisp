@@ -158,13 +158,19 @@
     (handler-bind ((error #'eclector.base:recover))
       (do-files (filename include-file-p)
         (with-file-contents (contents filename :encoding encoding)
-          (ppcre:do-matches (match-start match-end scanner contents)
-            (with-simple-restart (skip-form "Skip processing this form.")
-              (let* ((form (read-form contents match-start))
-                     (line (1+ (count #\Newline contents :end match-start)))
-                     (match (make-match :filename filename :line line :form form)))
-                (when (funcall test match)
-                  (funcall function match))))))))))
+          (let ((line 1)
+                (line-counter-start 0))
+            (ppcre:do-matches (match-start match-end scanner contents)
+              (incf line
+                    (count #\Newline contents
+                           :start line-counter-start
+                           :end match-start))
+              (setf line-counter-start match-start)
+              (with-simple-restart (skip-form "Skip processing this form.")
+                (let* ((form (read-form contents match-start))
+                       (match (make-match :filename filename :line line :form form)))
+                  (when (funcall test match)
+                    (funcall function match)))))))))))
 
 (defmacro do-form-matches ((match-var &rest args) &body forms)
   `(block nil
