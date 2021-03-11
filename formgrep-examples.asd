@@ -11,4 +11,4 @@
   :author "death <github.com/death>"
   :license "MIT"
   :depends-on ("formgrep" "pileup")
-  :components ((:file "top-matches")))
+  :components ((:file "examples/top-matches")))
