@@ -78,6 +78,8 @@
           do (let* ((*agenda-item* (pop *agenda*))
                     (form (agenda-item-form *agenda-item*)))
                (note-form form)
+               ;; Dumb way to figure out an unqualified symbol's
+               ;; package.
                (when (and (zerop (current-depth))
                           (consp form)
                           (eq (car form) 'in-package))
@@ -113,9 +115,7 @@
         ((consp form)
          (mark form)
          (enqueue-form (car form))
-         (enqueue-form (cdr form) (if (consp (cdr form)) 0 1))
-         ;; Dumb way to figure out an unqualified symbol's package.
-         )
+         (enqueue-form (cdr form) (if (consp (cdr form)) 0 1)))
         ((arrayp form)
          ;; Is it really worth traversing?
          (mark form)
