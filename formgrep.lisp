@@ -97,6 +97,12 @@
   ;; Include all forms conditional on feature expressions.
   t)
 
+(defmethod eclector.reader:make-structure-instance ((client eclector-client)
+                                                    name
+                                                    initargs)
+  ;; Don't bother with structure instances, for now.
+  nil)
+
 (defun read-form (string &optional (start 0))
   (eclector.reader:read-from-string string nil nil :start start))
 
