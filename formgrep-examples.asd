@@ -10,5 +10,6 @@
   :description "Example programs that use formgrep."
   :author "death <github.com/death>"
   :license "MIT"
-  :depends-on ("formgrep" "pileup")
-  :components ((:file "examples/top-matches")))
+  :depends-on ("formgrep" "pileup" "fare-csv")
+  :components ((:file "examples/top-matches")
+               (:file "examples/symbol-usage")))
